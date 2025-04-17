@@ -62,38 +62,31 @@ test('delete artcicle',async({page,request})=>{
 // we need to make api call
 
 // we need to first import request fxture from playwright library and inside the test 
-const response=await request.post('https://conduit-api.bondaracademy.com/api/users/login',{
+//const response=await request.post('https://conduit-api.bondaracademy.com/api/users/login',{
 
 //request body is clalled data in playwright
 //I got the url when I first oggid in the webpage 
-data:{
-  "user": {email: "esratest999@test.com", password: "123456"}
-}
+//data:{
+ // "user": {email: "esratest999@test.com", password: "123456"}
+//}
 
-})
+//})
 // we made first api clall to retrive the token
-const responseBody = await response.json()
-const accesToken= responseBody.user.token
+//const responseBody = await response.json()
+//const accesToken= responseBody.user.token
 //console.log(responseBody.user.token)
 // I retrived the url by creating article on the page and got the url from response
 const artcileResponse =await request.post('https://conduit-api.bondaracademy.com/api/articles/',{
-//then I clicke the payload/view source
-     data:{
-        "article":{"title":"This is a test title","description":"test article","body":"article","tagList":[]}
-     },
-     headers :{
-      Authorization:`Token ${accesToken}`
-     }
-
-    
-
-
+  data:{
+    "article":{"title":"This is a test title","description":"This is a test description","body":"This is a body","tagList":[]}
+  }
 })
 
 //make assetion that the article created 
 
 await page.waitForTimeout(5000)
-
+//how to debug the api error
+console.log(await artcileResponse.json())
 expect(artcileResponse.status()).toEqual(201)
 
 //then delete the article
@@ -131,25 +124,15 @@ await expect(page.locator('app-article-list h1').first()).toContainText('Playwri
 
 //in order to delete it we need an acces token
 
-const response=await request.post('https://conduit-api.bondaracademy.com/api/users/login',{
+
 
    //request body is clalled data in playwright
    //I got the url when I first oggid in the webpage 
-   data:{
-     "user": {email: "esratest999@test.com", password: "123456"}
-   }
-   
-   })
+  
    // we made first api clall to retrive the token
-   const responseBody = await response.json()
-   const accesToken= responseBody.user.token
-
-   const deleteArticleRequest =await request.delete(`https://conduit-api.bondaracademy.com/api/articles/${slugId}`,{
-      headers :{
-         Authorization:`Token ${accesToken}`
-        }
    
-   })
+
+   const deleteArticleRequest =await request.delete(`https://conduit-api.bondaracademy.com/api/articles/${slugId}`)
       
    expect (deleteArticleRequest.status()).toEqual(204)
    
