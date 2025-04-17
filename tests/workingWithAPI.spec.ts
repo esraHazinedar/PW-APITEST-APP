@@ -13,23 +13,25 @@ test.beforeEach( async ({ page }) => {
 //before we interact with the browser we should brovide it here 
 
 
-// await page.route('*/**/api/tags',async route=>{
+ await page.route('*/**/api/tags',async route=>{
   
 
 
-//   await route.fulfill ({
-//     contentType: 'application/json',
-//     body: JSON.stringify(tags)
-//   })
+   await route.fulfill ({
+     contentType: 'application/json',
+     body: JSON.stringify(tags)
+   })
   
 
 
 
-// })
-//   await page.goto('https://conduit.bondaracademy.com/');
-//   await page.waitForTimeout(1000);
-//   // Expect a title "to contain" a substring.
- 
+ })
+   await page.goto('https://conduit.bondaracademy.com/');
+   await page.waitForTimeout(1000);
+   await page.getByText('Sign in').click()
+   await page.getByRole('textbox',{name:'Email'}).fill('esratest999@test.com')
+   await page.getByRole('textbox',{name:'Password'}).fill('123456')
+   await page.getByRole('button').click()
 });
 
 
@@ -49,7 +51,7 @@ test('has title',async({page})=>{
   
   })
 
-
+await page.waitForTimeout(2000)
  await page.getByText('Global Feed').click()
 await expect(page.locator('.navbar-brand')).toHaveText('conduit')
 await expect(page.locator('app-article-list h1').first()).toContainText('This is a MOCK test title')
@@ -81,25 +83,84 @@ const accesToken= responseBody.user.token
 const artcileResponse =await request.post('https://conduit-api.bondaracademy.com/api/articles/',{
 //then I clicke the payload/view source
      data:{
-        "article":{"title":"new article","description":"test article","body":"article","tagList":[]}
+        "article":{"title":"This is a test title","description":"test article","body":"article","tagList":[]}
      },
      headers :{
       Authorization:`Token ${accesToken}`
      }
 
-
+    
 
 
 })
 
 //make assetion that the article created 
 
+await page.waitForTimeout(5000)
+
 expect(artcileResponse.status()).toEqual(201)
 
 //then delete the article
 await page.getByText('Global Feed').click()
-await page.getByText('new article').click()
+await page.waitForTimeout(5000)
+await page.getByText('This is a test title').click()
+await page.waitForTimeout(5000)
 await page.getByRole('button',{name:"Delete Article"}).first().click()
+await page.waitForTimeout(5000)
+await expect(page.locator('app-article-list h1').first()).not.toContainText('new article')
 
 })
 
+
+test('create article',async({page,request})=>{
+
+await page.getByText('New Article').click()
+await page.getByRole('textbox',{name:'Article Title'}).fill('Playwright is awesome')
+//we use the backslah when there is a conflict for""
+await page.getByRole('textbox',{name:'What\'s this article about?'}).fill('About the playwright')
+await page.getByRole('textbox',{name:'Write your article (in markdown)'}).fill('blah blah')
+await page.waitForTimeout(2000)
+await page.getByRole("button",{name:'Publish Article'}).click()
+
+//we will wait for the api response and we will use method 
+const articleResponse =await page.waitForResponse('https://conduit-api.bondaracademy.com/api/articles/')
+const responseBodyArticle = await articleResponse.json()
+const slugId = responseBodyArticle.article.slug //unique id
+
+await expect (page.locator('.article-page h1')).toContainText('Playwright is awesome')
+await page.getByText('Home').click()
+await page.getByText('Global Feed').click()
+await expect(page.locator('app-article-list h1').first()).toContainText('Playwright is awesome')
+
+
+//in order to delete it we need an acces token
+
+const response=await request.post('https://conduit-api.bondaracademy.com/api/users/login',{
+
+   //request body is clalled data in playwright
+   //I got the url when I first oggid in the webpage 
+   data:{
+     "user": {email: "esratest999@test.com", password: "123456"}
+   }
+   
+   })
+   // we made first api clall to retrive the token
+   const responseBody = await response.json()
+   const accesToken= responseBody.user.token
+
+   const deleteArticleRequest =await request.delete(`https://conduit-api.bondaracademy.com/api/articles/${slugId}`,{
+      headers :{
+         Authorization:`Token ${accesToken}`
+        }
+   
+   })
+      
+   expect (deleteArticleRequest.status()).toEqual(204)
+   
+
+
+
+
+
+  
+})
