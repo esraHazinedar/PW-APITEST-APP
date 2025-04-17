@@ -27,11 +27,7 @@ test.beforeEach( async ({ page }) => {
 
  })
    await page.goto('https://conduit.bondaracademy.com/');
-   await page.waitForTimeout(1000);
-   await page.getByText('Sign in').click()
-   await page.getByRole('textbox',{name:'Email'}).fill('esratest999@test.com')
-   await page.getByRole('textbox',{name:'Password'}).fill('123456')
-   await page.getByRole('button').click()
+   
 });
 
 
